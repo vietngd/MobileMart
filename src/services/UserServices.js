@@ -4,79 +4,13 @@ const {
   genneralAccessToken,
   genneralRefreshToken,
 } = require("./JwtServices.js");
-
-// Tạo id ngẫu nhiên cho user
-function randomID(length) {
-  var chars =
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz".split("");
-
-  if (!length) {
-    length = Math.floor(Math.random() * chars.length);
-  }
-
-  var str = "";
-  for (var i = 0; i < length; i++) {
-    str += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return str;
-}
-
-//Lấy thông tin người dùng
-const getAllUser = () => {
-  return new Promise((resolve, reject) => {
-    try {
-      const sql = "SELECT * FROM users";
-      connection.query(sql, (err, data) => {
-        resolve({
-          status: 200,
-          message: "Get all user",
-          data: data,
-        });
-      });
-    } catch (err) {
-      console.log(err);
-      reject(err);
-    }
-  });
-};
-
-//Lấy thông tin chi tiết người dùng
-const getDetailUser = (userId) => {
-  return new Promise((resolve, reject) => {
-    try {
-      const sql = "SELECT * FROM users WHERE id = ?";
-      connection.query(sql, [userId], (err, data) => {
-        if (err) {
-          console.log(err);
-          reject(err);
-          return;
-        }
-
-        if (data.length === 0) {
-          resolve({
-            status: "OK",
-            message: "The user is not defined",
-          });
-        } else {
-          resolve({
-            status: 200,
-            message: "Get detail user",
-            data: data,
-          });
-        }
-      });
-    } catch (err) {
-      console.log(err);
-      reject(err);
-    }
-  });
-};
+const RandomID = require("../config/randomID.js");
 
 //Tạo tài khoản
 const createUser = (newUser) => {
   return new Promise((resolve, reject) => {
     const { email, password } = newUser;
-    const id = randomID(25);
+    const id = RandomID(25);
     try {
       const hashPassword = bcrypt.hashSync(password, 10);
       const sql = "INSERT INTO users (id,email, password ) VALUES (?, ? , ?)";
@@ -99,62 +33,6 @@ const createUser = (newUser) => {
 };
 
 const loginUser = (loginUser) => {
-  return new Promise((resolve, reject) => {
-    const { email, password } = loginUser;
-    try {
-      const sql = "SELECT * FROM users WHERE email = ?";
-      const checkUser = connection.query(sql, [email], async (err, data) => {
-        if (err) {
-          console.log(err);
-          reject(err);
-          return;
-        }
-
-        if (data.length === 0) {
-          resolve({
-            status: "OK",
-            message: "The email is not defined",
-            data: null,
-          });
-        } else {
-          const comparePassword = bcrypt.compareSync(
-            password,
-            data[0].password
-          );
-          if (comparePassword) {
-            const access_token = await genneralAccessToken({
-              id: data[0].id,
-              isAdmin: data[0].isAdmin,
-            });
-            const refresh_token = await genneralRefreshToken({
-              id: data[0].id,
-              isAdmin: data[0].isAdmin,
-            });
-
-            resolve({
-              status: "OK",
-              message: "Login success",
-              access_token,
-              refresh_token,
-            });
-          } else {
-            resolve({
-              status: "OK",
-              message: "The password is incorect",
-              data: null,
-            });
-          }
-        }
-      });
-    } catch (err) {
-      console.log(err);
-      reject(err);
-    }
-  });
-};
-
-// Cập nhật thông tin cá nhân
-const updateUser = (loginUser) => {
   return new Promise((resolve, reject) => {
     const { email, password } = loginUser;
     try {
@@ -232,11 +110,61 @@ const deleteUser = (userId) => {
   });
 };
 
+//Lấy thông tin người dùng
+const getAllUser = () => {
+  return new Promise((resolve, reject) => {
+    try {
+      const sql = "SELECT * FROM users";
+      connection.query(sql, (err, data) => {
+        resolve({
+          status: 200,
+          message: "Get all user",
+          data: data,
+        });
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
+
+//Lấy thông tin chi tiết người dùng
+const getDetailUser = (userId) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const sql = "SELECT * FROM users WHERE id = ?";
+      connection.query(sql, [userId], (err, data) => {
+        if (err) {
+          console.log(err);
+          reject(err);
+          return;
+        }
+
+        if (data.length === 0) {
+          resolve({
+            status: "OK",
+            message: "The user is not defined",
+          });
+        } else {
+          resolve({
+            status: 200,
+            message: "Get detail user",
+            data: data,
+          });
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
+
 module.exports = {
-  getAllUser,
   createUser,
   loginUser,
-  updateUser,
   deleteUser,
+  getAllUser,
   getDetailUser,
 };

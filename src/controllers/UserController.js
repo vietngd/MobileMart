@@ -1,4 +1,5 @@
 const UserServices = require("../services/UserServices.js");
+const JwtServices = require("../services/JwtServices.js");
 
 // Tạo tài khoản
 const createUser = async (req, res) => {
@@ -53,7 +54,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Cập nhật thông tin người dùng
+// Cập nhật thông tin người dùng >>> Chưa làm
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -106,11 +107,32 @@ const getDetailUser = async (req, res) => {
   }
 };
 
+const refreshToken = async (req, res) => {
+  try {
+    const token = req.headers.token?.split(" ")[1];
+    if (!token) {
+      return res.status(200).json({
+        status: "Error",
+        message: "The token is required",
+      });
+    }
+
+    const response = await JwtServices.RefreshToken(token);
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+
 module.exports = {
-  getAllUser,
   createUser,
   loginUser,
   updateUser,
   deleteUser,
+  getAllUser,
   getDetailUser,
+  refreshToken,
 };

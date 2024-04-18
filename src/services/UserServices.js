@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const connection = require("../config/ConnectDB.js");
+const moment = require("moment");
 const {
   genneralAccessToken,
   genneralRefreshToken,
@@ -161,10 +162,44 @@ const getDetailUser = (userId) => {
   });
 };
 
+const updateUser = (infoUser, userId) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const { name, phone, address, avatar, isAdmin } = infoUser;
+      const timeUpdate = moment().format("YYYY-MM-DD HH:mm:ss");
+      const sql =
+        "UPDATE users SET name = ? , phone = ? , address = ? , avatar = ? , isAdmin = ? , updated_at = ? WHERE id = ? ";
+      connection.query(
+        sql,
+        [name, phone, address, avatar, isAdmin, timeUpdate, userId],
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            resolve({
+              status: 200,
+              message: "Update user fail",
+              data: data,
+            });
+          }
+          resolve({
+            status: 200,
+            message: "Update user success",
+            data: data,
+          });
+        }
+      );
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
+
 module.exports = {
   createUser,
   loginUser,
   deleteUser,
   getAllUser,
   getDetailUser,
+  updateUser,
 };

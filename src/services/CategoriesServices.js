@@ -1,10 +1,7 @@
 const bcrypt = require("bcrypt");
 const connection = require("../config/ConnectDB.js");
 const RandomID = require("../config/randomID.js");
-const {
-  genneralAccessToken,
-  genneralRefreshToken,
-} = require("./JwtServices.js");
+const moment = require("moment");
 
 const createCategory = (newCategory) => {
   return new Promise((resolve, reject) => {
@@ -33,19 +30,29 @@ const createCategory = (newCategory) => {
 const UpdateCategory = (newCategory, categoryId) => {
   return new Promise((resolve, reject) => {
     const { name, description } = newCategory;
+    const timeUpdate = moment().format("YYYY-MM-DD HH:mm:ss");
     try {
       const sql =
-        "UPDATE categories SET name = ? , description = ? WHERE id = ? ";
-      connection.query(sql, [name, description, categoryId], (err, data) => {
-        if (err) {
-          console.log(err);
+        "UPDATE categories SET name = ? , description = ? , updated_at = ? WHERE id = ? ";
+      connection.query(
+        sql,
+        [name, description, timeUpdate, categoryId],
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            resolve({
+              status: 200,
+              message: "Update category fail",
+              err,
+            });
+          }
+          resolve({
+            status: 200,
+            message: "Update category success",
+            data: data,
+          });
         }
-        resolve({
-          status: 200,
-          message: "Update category success",
-          data: data,
-        });
-      });
+      );
     } catch (err) {
       console.log(err);
       reject(err);

@@ -9,7 +9,7 @@ const checkExistence = require("../middleware/checkExistMiddleware.js");
 const router = express.Router();
 
 router.post(
-  "/add",
+  "/create",
   checkExistence("categories", "name"),
   CategoryController.createCategory
 );

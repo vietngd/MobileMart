@@ -58,8 +58,14 @@ const loginUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    console.log(userId);
-    const response = await UserServices.updateUser(req.body);
+    const { name, phone, address, avatar, isAdmin } = req.body;
+    if (!name || !phone || !address || !avatar || isAdmin === null) {
+      return res.status(200).json({
+        status: "Err",
+        message: "The input is required",
+      });
+    }
+    const response = await UserServices.updateUser(req.body, userId);
     return res.status(200).json(response);
   } catch (err) {
     console.log(err);

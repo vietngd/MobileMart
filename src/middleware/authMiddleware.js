@@ -7,7 +7,7 @@ const authMiddleware = (req, res, next) => {
   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {
     if (err) {
       return res.status(404).json({
-        status: "Error",
+        status: "Err",
         message: "The authentication",
       });
     }
@@ -17,7 +17,7 @@ const authMiddleware = (req, res, next) => {
       next();
     } else {
       return res.status(404).json({
-        status: "Error",
+        status: "Err",
         message: "The authentication",
       });
     }
@@ -29,18 +29,18 @@ const authUserMiddleware = (req, res, next) => {
   const userId = req.params.id;
   jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {
     if (err) {
-      return res.status(404).json({
-        status: "Error",
-        message: "The authentication",
+      console.log(err);
+      return res.status(200).json({
+        status: "Err",
+        message: "Token hết hạn",
       });
     }
 
-    const { payload } = user;
-    if (payload?.isAdmin || payload?.id === userId) {
+    if (user?.isAdmin || user?.id === userId) {
       next();
     } else {
-      return res.status(404).json({
-        status: "Error",
+      return res.status(200).json({
+        status: "Err",
         message: "The authentication",
       });
     }

@@ -16,6 +16,7 @@ router.post(
   UserController.createUser
 );
 router.post("/sign-in", UserController.loginUser);
+router.post("/logout", UserController.logoutUser);
 router.put("/update/:id", UserController.updateUser);
 router.delete("/delete/:id", authMiddleware, UserController.deleteUser);
 router.get("/getAllUser", authMiddleware, UserController.getAllUser);
@@ -24,6 +25,6 @@ router.get(
   authUserMiddleware,
   UserController.getDetailUser
 );
-router.get("/refresh-token", UserController.refreshToken);
+router.post("/refresh-token", UserController.refreshToken);
 
 module.exports = router;

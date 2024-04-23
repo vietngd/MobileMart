@@ -20,7 +20,7 @@ const createUser = (newUser) => {
         [id, email, hashPassword],
         (err, data) => {
           resolve({
-            status: 200,
+            status: "OK",
             message: "Tạo tài khoản thành công",
             data: createUser.values,
           });
@@ -47,9 +47,8 @@ const loginUser = (loginUser) => {
 
         if (data.length === 0) {
           resolve({
-            status: "OK",
+            status: "Err",
             message: "The email is not defined",
-            data: null,
           });
         } else {
           const comparePassword = bcrypt.compareSync(
@@ -74,7 +73,7 @@ const loginUser = (loginUser) => {
             });
           } else {
             resolve({
-              status: "OK",
+              status: "Err",
               message: "The password is incorect",
               data: null,
             });
@@ -165,6 +164,7 @@ const getDetailUser = (userId) => {
 const updateUser = (infoUser, userId) => {
   return new Promise((resolve, reject) => {
     try {
+      console.log(infoUser);
       const { name, phone, address, avatar, isAdmin } = infoUser;
       const timeUpdate = moment().format("YYYY-MM-DD HH:mm:ss");
       const sql =
@@ -183,7 +183,7 @@ const updateUser = (infoUser, userId) => {
           }
           resolve({
             status: 200,
-            message: "Update user success",
+            message: "Cập nhật thông tin thành công",
             data: data,
           });
         }

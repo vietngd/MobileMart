@@ -20,6 +20,7 @@ const createUser = async (req, res) => {
     }
 
     const response = await UserServices.createUser(req.body);
+
     return res.status(200).json(response);
   } catch (err) {
     return res.status(404).json({
@@ -46,7 +47,15 @@ const loginUser = async (req, res) => {
     }
 
     const response = await UserServices.loginUser(req.body);
-    return res.status(200).json(response);
+    const { refresh_token, ...newResponse } = response;
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+    });
+
+    return res.status(200).json(newResponse);
   } catch (err) {
     return res.status(404).json({
       message: err,
@@ -54,12 +63,11 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Cập nhật thông tin người dùng >>> Chưa làm
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const { name, phone, address, avatar, isAdmin } = req.body;
-    if (!name || !phone || !address || !avatar || isAdmin === null) {
+    const { name, phone, address, avatar } = req.body;
+    if (!name || !phone || !address || !avatar) {
       return res.status(200).json({
         status: "Err",
         message: "The input is required",
@@ -115,10 +123,10 @@ const getDetailUser = async (req, res) => {
 
 const refreshToken = async (req, res) => {
   try {
-    const token = req.headers.token?.split(" ")[1];
+    const token = req.cookies.refresh_token;
     if (!token) {
       return res.status(200).json({
-        status: "Error",
+        status: "Err",
         message: "The token is required",
       });
     }
@@ -133,6 +141,20 @@ const refreshToken = async (req, res) => {
   }
 };
 
+const logoutUser = async (req, res) => {
+  try {
+    res.clearCookie("refresh_token");
+    return res.status(200).json({
+      status: "OK",
+      message: "Đăng xuất thành công",
+    });
+  } catch (err) {
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   loginUser,
@@ -141,4 +163,5 @@ module.exports = {
   getAllUser,
   getDetailUser,
   refreshToken,
+  logoutUser,
 };

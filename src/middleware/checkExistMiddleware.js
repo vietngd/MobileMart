@@ -9,14 +9,14 @@ const checkExist = (table, field) => {
         if (err) {
           console.log(err);
           return res.status(500).json({
-            status: "error",
+            status: "Err",
             message: "Internal server error",
           });
         }
 
         if (data.length > 0) {
-          return res.status(400).json({
-            status: "error",
+          return res.status(200).json({
+            status: "Err",
             message: `${field} already exists`,
           });
         }

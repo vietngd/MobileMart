@@ -164,8 +164,7 @@ const getDetailUser = (userId) => {
 const updateUser = (infoUser, userId) => {
   return new Promise((resolve, reject) => {
     try {
-      console.log(infoUser);
-      const { name, phone, address, avatar, isAdmin } = infoUser;
+      const { name, phone, address, avatar, isAdmin = false } = infoUser;
       const timeUpdate = moment().format("YYYY-MM-DD HH:mm:ss");
       const sql =
         "UPDATE users SET name = ? , phone = ? , address = ? , avatar = ? , isAdmin = ? , updated_at = ? WHERE id = ? ";
@@ -176,13 +175,13 @@ const updateUser = (infoUser, userId) => {
           if (err) {
             console.log(err);
             resolve({
-              status: 200,
+              status: "Err",
               message: "Update user fail",
               data: data,
             });
           }
           resolve({
-            status: 200,
+            status: "OK",
             message: "Cập nhật thông tin thành công",
             data: data,
           });

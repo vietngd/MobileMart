@@ -17,7 +17,7 @@ router.post(
 );
 router.post("/sign-in", UserController.loginUser);
 router.post("/logout", UserController.logoutUser);
-router.put("/update/:id", UserController.updateUser);
+router.put("/update/:id", authUserMiddleware, UserController.updateUser);
 router.delete("/delete/:id", authMiddleware, UserController.deleteUser);
 router.get("/getAllUser", authMiddleware, UserController.getAllUser);
 router.get(

@@ -81,18 +81,49 @@ const DeleteCategory = (categoryId) => {
   });
 };
 
-const GetAllCategory = (categoryId) => {
+const GetAllCategory = () => {
   return new Promise((resolve, reject) => {
     try {
       const sql = "SELECT * FROM categories ";
       connection.query(sql, (err, data) => {
         if (err) {
           console.log(err);
+          resolve({
+            status: "Err",
+            message: "Get all category Fail",
+            err,
+          });
         }
         resolve({
-          status: 200,
+          status: "OK",
           message: "Get all category success",
           categories: data,
+        });
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
+
+const GetCategoryById = (category_id) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const sql = "SELECT * FROM categories WHERE id = ?";
+      connection.query(sql, [category_id], (err, data) => {
+        if (err) {
+          console.log(err);
+          resolve({
+            status: "Err",
+            message: "Get category Fail",
+            err,
+          });
+        }
+        resolve({
+          status: "OK",
+          message: "Get category success",
+          category: data,
         });
       });
     } catch (err) {
@@ -107,4 +138,5 @@ module.exports = {
   UpdateCategory,
   DeleteCategory,
   GetAllCategory,
+  GetCategoryById,
 };

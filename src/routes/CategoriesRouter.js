@@ -15,7 +15,8 @@ router.post(
 );
 
 router.put("/update/:id", CategoryController.UpdateCategory);
-router.delete("/delete/:id", CategoryController.DeleteCategory);
-router.get("/get", CategoryController.GetAllCategory);
+router.delete("/dele:te/:id", CategoryController.DeleteCategory);
+router.get("/getAll/", CategoryController.GetAllCategory);
+router.get("/getById/:id", CategoryController.GetCategoryById);
 
 module.exports = router;

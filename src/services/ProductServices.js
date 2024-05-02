@@ -14,16 +14,21 @@ const createProduct = (newProduct) => {
       quantity,
       category_id,
       configuration,
+      images,
     } = newProduct;
+
     const id = RandomID(25);
     try {
-      const sql =
-        "INSERT INTO products (id,name,description,hot,price,sale,quantity,category_id,configuration) VALUES (? , ? , ? , ? , ? , ? , ? , ? , ?)";
+      const sqlProduct =
+        "INSERT INTO products (id,name,images,description,hot,price,sale,quantity,category_id,configuration) VALUES (? , ? , ? , ? , ? , ? , ? , ? , ? , ?)";
+
+      const imagesString = images.join(",");
       connection.query(
-        sql,
+        sqlProduct,
         [
           id,
           name,
+          imagesString,
           description,
           hot,
           price,
@@ -36,13 +41,14 @@ const createProduct = (newProduct) => {
           if (err) {
             console.log(err);
             resolve({
-              status: 200,
+              status: "Err",
               message: "Thêm sản phẩm thất bại",
               err,
             });
           }
+
           resolve({
-            status: 200,
+            status: "OK",
             message: "Thêm sản phẩm thành công",
             data: data,
           });
@@ -66,15 +72,19 @@ const UpdateProduct = (newProduct, ProductId) => {
       quantity,
       category_id,
       configuration,
+      images,
     } = newProduct;
     const timeUpdate = moment().format("YYYY-MM-DD HH:mm:ss");
     try {
       const sql =
-        "UPDATE products SET name = ? , description = ? , hot = ? , price = ? , sale= ? , quantity = ? ,category_id= ?, configuration= ?  , updated_at = ? WHERE id = ? ";
+        "UPDATE products SET name = ? ,images = ? , description = ? , hot = ? , price = ? , sale= ? , quantity = ? ,category_id= ?, configuration= ?  , updated_at = ? WHERE id = ? ";
+
+      const imagesString = images.join(",");
       connection.query(
         sql,
         [
           name,
+          imagesString,
           description,
           hot,
           price,
@@ -89,13 +99,13 @@ const UpdateProduct = (newProduct, ProductId) => {
           if (err) {
             console.log(err);
             resolve({
-              status: 200,
+              status: "Err",
               message: "Update Product fail",
               err,
             });
           }
           resolve({
-            status: 200,
+            status: "OK",
             message: "Update Product success",
             data: data,
           });
@@ -115,9 +125,14 @@ const DeleteProduct = (ProductId) => {
       connection.query(sql, [ProductId], (err, data) => {
         if (err) {
           console.log(err);
+          resolve({
+            status: "Err",
+            message: "Delete Product Fail",
+            data: data,
+          });
         }
         resolve({
-          status: 200,
+          status: "OK",
           message: "Delete Product success",
           data: data,
         });
@@ -129,14 +144,17 @@ const DeleteProduct = (ProductId) => {
   });
 };
 
-const GetAllProduct = (page, pageSize, sortField, sortOrder) => {
+const GetAllProduct = (page, pageSize, sortField, sortOrder, productName) => {
   return new Promise((resolve, reject) => {
     try {
       // Tính chỉ số bắt đầu và số lượng sản phẩm để trả về trên trang hiện tại
       const startIndex = (page - 1) * pageSize;
 
-      let sql = "SELECT * FROM products";
+      let sql = "SELECT * FROM products WHERE 1=1";
 
+      if (productName) {
+        sql += ` AND name LIKE '%${productName}%'`;
+      }
       // Xử lý sort
       if (sortField && sortOrder) {
         sql += ` ORDER BY ${sortField} ${sortOrder}`;
@@ -170,7 +188,7 @@ const GetAllProduct = (page, pageSize, sortField, sortOrder) => {
             const response = {
               status: 200,
               message: "Get all Product success",
-              Products: data,
+              data: data,
               pagination: {
                 currentPage: page,
                 pageSize: pageSize,
@@ -206,8 +224,72 @@ const GetByIdProduct = (ProductId) => {
         resolve({
           status: 200,
           message: "Get detail product success",
-          Product: data,
+          data,
         });
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
+
+const GetByCategory = (categoryId, page, pageSize, sortField, sortOrder) => {
+  return new Promise((resolve, reject) => {
+    try {
+      // Tính chỉ số bắt đầu và số lượng sản phẩm để trả về trên trang hiện tại
+      const startIndex = (page - 1) * pageSize;
+
+      let sql = `SELECT * FROM products WHERE category_id = ?`;
+
+      // Xử lý sort
+      if (sortField && sortOrder) {
+        sql += ` ORDER BY ${sortField} ${sortOrder}`;
+      }
+
+      if (pageSize) {
+        // Thêm phân trang
+        sql += ` LIMIT ${startIndex}, ${pageSize}`;
+      }
+
+      connection.query(sql, [categoryId], (err, data) => {
+        if (err) {
+          console.log(err);
+          resolve({
+            status: 200,
+            message: "Get Product by category fail",
+            err,
+          });
+        }
+
+        // Tính tổng số sản phẩm
+        connection.query(
+          "SELECT COUNT(*) AS totalCount FROM products WHERE category_id = ?",
+          [categoryId],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+              reject(err);
+            }
+
+            const totalCount = result[0].totalCount;
+
+            // Tạo đối tượng kết quả để trả về
+            const response = {
+              status: 200,
+              message: "Get Product by category success",
+              Products: data,
+              pagination: {
+                currentPage: page,
+                pageSize: pageSize,
+                totalPages: Math.ceil(totalCount / pageSize),
+                totalCount: totalCount,
+              },
+            };
+
+            resolve(response);
+          }
+        );
       });
     } catch (err) {
       console.log(err);
@@ -222,4 +304,5 @@ module.exports = {
   DeleteProduct,
   GetAllProduct,
   GetByIdProduct,
+  GetByCategory,
 };

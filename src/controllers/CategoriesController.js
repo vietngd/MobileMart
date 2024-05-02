@@ -3,8 +3,8 @@ const JwtServices = require("../services/JwtServices.js");
 
 const createCategory = async (req, res) => {
   try {
-    const { name, description } = req.body;
-    if (!name || !description) {
+    const { name } = req.body;
+    if (!name) {
       return res.status(200).json({
         status: "Err",
         message: "The input is required",
@@ -22,9 +22,9 @@ const createCategory = async (req, res) => {
 
 const UpdateCategory = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name } = req.body;
     const categoryId = req.params.id;
-    if (!name || !description) {
+    if (!name) {
       return res.status(200).json({
         status: "Err",
         message: "The input is required",
@@ -68,9 +68,23 @@ const GetAllCategory = async (req, res) => {
   }
 };
 
+const GetCategoryById = async (req, res) => {
+  try {
+    const categoryId = req.params?.id;
+    const response = await CategoryServices.GetCategoryById(categoryId);
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+
 module.exports = {
   createCategory,
   UpdateCategory,
   DeleteCategory,
   GetAllCategory,
+  GetCategoryById,
 };

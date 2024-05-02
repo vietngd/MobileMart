@@ -11,7 +11,9 @@ const createProduct = async (req, res) => {
       quantity,
       category_id,
       configuration,
+      images,
     } = req.body;
+
     if (
       !name ||
       !description ||
@@ -20,7 +22,8 @@ const createProduct = async (req, res) => {
       !sale ||
       !quantity ||
       !category_id ||
-      !configuration
+      !configuration ||
+      !images
     ) {
       return res.status(200).json({
         status: "Err",
@@ -48,6 +51,7 @@ const UpdateProduct = async (req, res) => {
       quantity,
       category_id,
       configuration,
+      images,
     } = req.body;
     if (
       !name ||
@@ -57,7 +61,8 @@ const UpdateProduct = async (req, res) => {
       !sale ||
       !quantity ||
       !category_id ||
-      !configuration
+      !configuration ||
+      !images
     ) {
       return res.status(200).json({
         status: "Err",
@@ -91,7 +96,7 @@ const DeleteProduct = async (req, res) => {
 
 const GetAllProduct = async (req, res) => {
   try {
-    const { page, pageSize, sortField, sortOrder } = req.query;
+    const { page, pageSize, sortField, sortOrder, productName } = req.query;
     const PageSize = parseInt(pageSize) || 5;
     const Page = parseInt(page) || 1;
 
@@ -99,7 +104,8 @@ const GetAllProduct = async (req, res) => {
       Page,
       PageSize,
       sortField,
-      sortOrder
+      sortOrder,
+      productName
     );
 
     return res.status(200).json(response);
@@ -124,10 +130,32 @@ const GetByIdProduct = async (req, res) => {
   }
 };
 
+const GetByCategory = async (req, res) => {
+  try {
+    const categorytId = req.params.categoryId;
+    const { page, pageSize, sortField, sortOrder } = req.query;
+    const PageSize = parseInt(pageSize) || 5;
+    const Page = parseInt(page) || 1;
+    const response = await ProductServices.GetByCategory(
+      categorytId,
+      Page,
+      PageSize,
+      sortField,
+      sortOrder
+    );
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
 module.exports = {
   createProduct,
   UpdateProduct,
   DeleteProduct,
   GetAllProduct,
   GetByIdProduct,
+  GetByCategory,
 };

@@ -134,7 +134,8 @@ const GetByCategory = async (req, res) => {
   try {
     const categorytId = req.params.categoryId;
     const { page, pageSize, sortField, sortOrder } = req.query;
-    const PageSize = parseInt(pageSize) || 5;
+
+    const PageSize = pageSize && parseInt(pageSize);
     const Page = parseInt(page) || 1;
     const response = await ProductServices.GetByCategory(
       categorytId,

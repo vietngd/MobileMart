@@ -40,7 +40,7 @@ const loginUser = (loginUser) => {
       const sql = "SELECT * FROM users WHERE email = ?";
       const checkUser = connection.query(sql, [email], async (err, data) => {
         if (err) {
-          console.log(err);
+          console.log("Err :", err);
           reject(err);
           return;
         }
@@ -164,29 +164,40 @@ const getDetailUser = (userId) => {
 const updateUser = (infoUser, userId) => {
   return new Promise((resolve, reject) => {
     try {
-      const { name, phone, address, avatar, isAdmin = false } = infoUser;
       const timeUpdate = moment().format("YYYY-MM-DD HH:mm:ss");
-      const sql =
-        "UPDATE users SET name = ? , phone = ? , address = ? , avatar = ? , isAdmin = ? , updated_at = ? WHERE id = ? ";
-      connection.query(
-        sql,
-        [name, phone, address, avatar, isAdmin, timeUpdate, userId],
-        (err, data) => {
-          if (err) {
-            console.log(err);
-            resolve({
-              status: "Err",
-              message: "Update user fail",
-              data: data,
-            });
-          }
+
+      let sql = "UPDATE users SET ";
+      let values = [];
+
+      Object.keys(infoUser).forEach((key, index) => {
+        if (index > 0) {
+          sql += ", ";
+        }
+
+        sql += `${key} = ?`;
+        values.push(infoUser[key]);
+      });
+      sql += ", ";
+      sql += " updated_at = ? WHERE id = ?";
+      values.push(timeUpdate);
+
+      values.push(userId);
+
+      connection.query(sql, values, (err, data) => {
+        if (err) {
+          console.log(err);
           resolve({
-            status: "OK",
-            message: "Cập nhật thông tin thành công",
+            status: "Err",
+            message: "Update user fail",
             data: data,
           });
         }
-      );
+        resolve({
+          status: "OK",
+          message: "Cập nhật thông tin thành công",
+          data: data,
+        });
+      });
     } catch (err) {
       console.log(err);
       reject(err);

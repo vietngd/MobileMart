@@ -281,8 +281,8 @@ const GetByCategory = (categoryId, page, pageSize, sortField, sortOrder) => {
               Products: data,
               pagination: {
                 currentPage: page,
-                pageSize: pageSize,
-                totalPages: Math.ceil(totalCount / pageSize),
+                pageSize: pageSize || 0,
+                totalPages: Math.ceil(totalCount / pageSize) || 0,
                 totalCount: totalCount,
               },
             };

@@ -22,7 +22,7 @@ router.put(
 router.delete("/delete/:id", ProductController.DeleteProduct);
 router.get("/getAll", ProductController.GetAllProduct);
 router.get("/getById/:id", ProductController.GetByIdProduct);
-// Get sản phẩm theo danh mục
+// Get sản phẩm theo id danh mục
 router.get("/getAll/:categoryId", ProductController.GetByCategory);
 
 module.exports = router;

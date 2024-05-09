@@ -32,6 +32,7 @@ const createUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const regEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
     const isCheckEmail = regEmail.test(email);
     if (!email || !password) {
@@ -66,13 +67,6 @@ const loginUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const { name, phone, address, avatar } = req.body;
-    if (!name || !phone || !address || !avatar) {
-      return res.status(200).json({
-        status: "Err",
-        message: "The input is required",
-      });
-    }
     const response = await UserServices.updateUser(req.body, userId);
     return res.status(200).json(response);
   } catch (err) {

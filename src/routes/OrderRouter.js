@@ -1,10 +1,27 @@
 const OrderController = require("../controllers/OrderController.js");
 const express = require("express");
-const { authUserMiddleware } = require("../middleware/authMiddleware.js");
+const {
+  authUserMiddleware,
+  authMiddleware,
+} = require("../middleware/authMiddleware.js");
 
 const router = express.Router();
 
 router.post("/create", authUserMiddleware, OrderController.createOrder);
-router.get("/getAll", OrderController.getAllOrder);
+router.get("/getOrderByUser", OrderController.getOrderByUser);
+router.get("/getAllOrder", authMiddleware, OrderController.getAllOrder);
+router.get(
+  "/getDetailOrder/:id",
+  authMiddleware,
+  OrderController.getDetailOrder
+);
+
+router.put(
+  "/update-transport/:id",
+  authMiddleware,
+  OrderController.updateTransport
+);
+
+router.delete("/delete/:id", authMiddleware, OrderController.deleteOrder);
 
 module.exports = router;

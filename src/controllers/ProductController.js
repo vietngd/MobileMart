@@ -152,6 +152,7 @@ const GetByCategory = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   createProduct,
   UpdateProduct,

@@ -2,7 +2,14 @@ const OrderServices = require("../services/OrderServices");
 
 const createOrder = async (req, res) => {
   try {
-    const { address, order_status_payment, products, user_id } = req.body;
+    const {
+      address,
+      order_status_payment,
+      products,
+      user_id,
+      phone,
+      total_money,
+    } = req.body;
 
     if (!address) {
       return res.status(200).json({
@@ -27,7 +34,22 @@ const createOrder = async (req, res) => {
     if (!user_id) {
       return res.status(200).json({
         status: "Err",
-        message: "The authentication",
+        message: "Thiếu user_id",
+      });
+    }
+
+    const regexPhoneNumber = /(03|05|07|08|09|01[2|6|8|9])+([0-9]{8})\b/;
+    if (!regexPhoneNumber.test(phone)) {
+      return res.status(200).json({
+        status: "Err",
+        message: "Vui lòng nhập đúng số điện thoại",
+      });
+    }
+
+    if (!total_money) {
+      return res.status(200).json({
+        status: "Err",
+        message: "Total_money không được để trống",
       });
     }
 
@@ -41,7 +63,7 @@ const createOrder = async (req, res) => {
   }
 };
 
-const getAllOrder = async (req, res) => {
+const getOrderByUser = async (req, res) => {
   try {
     const { user_id } = req.query;
     if (!user_id) {
@@ -50,7 +72,76 @@ const getAllOrder = async (req, res) => {
         message: "Thiếu user_id",
       });
     }
-    const response = await OrderServices.getAllOrder(req.query);
+    const response = await OrderServices.getOrderByUser(req.query);
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+
+const getAllOrder = async (req, res) => {
+  try {
+    const response = await OrderServices.getAllOrder();
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+
+const getDetailOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(200).json({
+        status: "Err",
+        message: "Thiếu id của đơn hàng",
+      });
+    }
+    const response = await OrderServices.getDetailOrder(id);
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+const updateTransport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(200).json({
+        status: "Err",
+        message: "Thiếu id của đơn hàng",
+      });
+    }
+
+    const response = await OrderServices.updateTransport(id);
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+const deleteOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(200).json({
+        status: "Err",
+        message: "Thiếu id của đơn hàng",
+      });
+    }
+
+    const response = await OrderServices.deleteOrder(id);
     return res.status(200).json(response);
   } catch (err) {
     console.log(err);
@@ -62,5 +153,9 @@ const getAllOrder = async (req, res) => {
 
 module.exports = {
   createOrder,
+  getOrderByUser,
   getAllOrder,
+  getDetailOrder,
+  updateTransport,
+  deleteOrder,
 };

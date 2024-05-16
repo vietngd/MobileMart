@@ -67,6 +67,7 @@ const loginUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
+
     const response = await UserServices.updateUser(req.body, userId);
     return res.status(200).json(response);
   } catch (err) {

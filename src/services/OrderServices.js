@@ -85,6 +85,7 @@ const getOrderByUser = (user) => {
                 orders.address, 
                 orders.id AS order_id, 
                 orders.order_status_payment, 
+                orders.order_status_transport, 
                 orders.total_money,
                 CONCAT(
                     '[',

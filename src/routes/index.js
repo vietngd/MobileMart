@@ -4,6 +4,7 @@ const ProductRouter = require("./ProductRouter.js");
 const OrderRouter = require("./OrderRouter.js");
 const VNPayRouter = require("./VNPayRouter.js");
 const CommentRouter = require("./CommentRouter.js");
+const SliderRouter = require("./SliderRouter.js");
 
 const routes = (app) => {
   app.use("/api/user", UserRouter);
@@ -12,6 +13,7 @@ const routes = (app) => {
   app.use("/api/order", OrderRouter);
   app.use("/api/vnpay", VNPayRouter);
   app.use("/api/comment", CommentRouter);
+  app.use("/api/slider", SliderRouter);
 };
 
 module.exports = routes;

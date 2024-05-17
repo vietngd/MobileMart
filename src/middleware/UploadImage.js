@@ -45,9 +45,15 @@ const uploadMultipleImages = (images) => {
 const UploadImageMiddleware = () => {
   return async (req, res, next) => {
     try {
-      const { images } = req.body;
-      const imgUrls = await uploadMultipleImages(images);
-      req.body.images = imgUrls;
+      const { product, sliders } = req.body;
+      if (product) {
+        const imgUrls = await uploadMultipleImages(product?.images);
+        req.body.images = imgUrls;
+      }
+      if (sliders) {
+        const imgUrls = await uploadMultipleImages(sliders);
+        req.body.images = imgUrls;
+      }
       next();
     } catch (err) {
       return res.status(500).json({

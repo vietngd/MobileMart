@@ -2,32 +2,37 @@ const ProductServices = require("../services/ProductServices.js");
 
 const createProduct = async (req, res) => {
   try {
-    const {
-      name,
-      description,
-      hot,
-      price,
-      sale,
-      quantity,
-      category_id,
-      configuration,
-      images,
-    } = req.body;
+    const { product, configuration } = req.body;
 
     if (
-      !name ||
-      !description ||
-      hot === null ||
-      !price ||
-      !sale ||
-      !quantity ||
-      !category_id ||
-      !configuration ||
-      !images
+      !product?.category_id ||
+      !product?.name ||
+      !product?.images ||
+      !product?.price ||
+      !product?.quantity ||
+      !product?.sale
     ) {
       return res.status(200).json({
         status: "Err",
-        message: "The input is required",
+        message: "Thông tin của product bị thiếu",
+      });
+    }
+
+    if (
+      !configuration?.after_camera ||
+      !configuration?.battery ||
+      !configuration?.before_camera ||
+      !configuration?.chipset ||
+      !configuration?.operating_system ||
+      !configuration?.ram ||
+      !configuration?.screen_resolution ||
+      !configuration?.screen_size ||
+      !configuration?.screen_technology ||
+      !configuration?.storage
+    ) {
+      return res.status(200).json({
+        status: "Err",
+        message: "Thông tin của configuration bị thiếu",
       });
     }
     const response = await ProductServices.createProduct(req.body);
@@ -42,31 +47,37 @@ const createProduct = async (req, res) => {
 
 const UpdateProduct = async (req, res) => {
   try {
-    const {
-      name,
-      description,
-      hot,
-      price,
-      sale,
-      quantity,
-      category_id,
-      configuration,
-      images,
-    } = req.body;
+    const { product, configuration } = req.body;
+
     if (
-      !name ||
-      !description ||
-      hot === null ||
-      !price ||
-      !sale ||
-      !quantity ||
-      !category_id ||
-      !configuration ||
-      !images
+      !product?.category_id ||
+      !product?.name ||
+      !product?.images ||
+      !product?.price ||
+      !product?.quantity ||
+      !product?.sale
     ) {
       return res.status(200).json({
         status: "Err",
-        message: "The input is required",
+        message: "Thông tin của product bị thiếu",
+      });
+    }
+
+    if (
+      !configuration?.after_camera ||
+      !configuration?.battery ||
+      !configuration?.before_camera ||
+      !configuration?.chipset ||
+      !configuration?.operating_system ||
+      !configuration?.ram ||
+      !configuration?.screen_resolution ||
+      !configuration?.screen_size ||
+      !configuration?.screen_technology ||
+      !configuration?.storage
+    ) {
+      return res.status(200).json({
+        status: "Err",
+        message: "Thông tin của configuration bị thiếu",
       });
     }
 

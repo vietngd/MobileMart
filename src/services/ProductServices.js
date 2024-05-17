@@ -2,42 +2,30 @@ const bcrypt = require("bcrypt");
 const connection = require("../config/ConnectDB.js");
 const RandomID = require("../config/randomID.js");
 const moment = require("moment");
+const { data } = require("jquery");
 
 const createProduct = (newProduct) => {
   return new Promise((resolve, reject) => {
-    const {
-      name,
-      description,
-      hot,
-      price,
-      sale,
-      quantity,
-      category_id,
-      configuration,
-      images,
-    } = newProduct;
+    const { product, configuration, images } = newProduct;
 
     const id = RandomID(25);
     try {
       const sqlProduct =
-        "INSERT INTO products (id,name,images,description,hot,price,sale,quantity,category_id,configuration) VALUES (? , ? , ? , ? , ? , ? , ? , ? , ? , ?)";
-
-      const imagesString = images.join(",");
+        "INSERT INTO products (id,name,images,hot,price,sale,quantity,category_id) VALUES (? , ? , ? , ? , ? , ? , ? , ?)";
+      const imagesString = images?.join(",");
       connection.query(
         sqlProduct,
         [
           id,
-          name,
+          product?.name,
           imagesString,
-          description,
-          hot,
-          price,
-          sale,
-          quantity,
-          category_id,
-          configuration,
+          product?.hot,
+          product?.price,
+          product?.sale,
+          product?.quantity,
+          product?.category_id,
         ],
-        (err, data) => {
+        (err, results) => {
           if (err) {
             console.log(err);
             resolve({
@@ -45,13 +33,41 @@ const createProduct = (newProduct) => {
               message: "Thêm sản phẩm thất bại",
               err,
             });
-          }
+          } else {
+            const sqlConfiguration = `INSERT INTO configuration (product_id, after_camera, battery , before_camera, chipset, operating_system, ram, screen_resolution, screen_size, screen_technology, storage ) VALUES (?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?)`;
+            connection.query(
+              sqlConfiguration,
+              [
+                id,
+                configuration?.after_camera,
+                configuration?.battery,
+                configuration?.before_camera,
+                configuration?.chipset,
+                configuration?.operating_system,
+                configuration?.ram,
+                configuration?.screen_resolution,
+                configuration?.screen_size,
+                configuration?.screen_technology,
+                configuration?.storage,
+              ],
+              (err, data) => {
+                if (err) {
+                  console.log(err);
+                  resolve({
+                    status: "Err",
+                    message: "Thêm cấu hình thất bại",
+                    err,
+                  });
+                }
 
-          resolve({
-            status: "OK",
-            message: "Thêm sản phẩm thành công",
-            data: data,
-          });
+                resolve({
+                  status: "OK",
+                  message: "Thêm sản phẩm thành công",
+                  data: data,
+                });
+              }
+            );
+          }
         }
       );
     } catch (err) {
@@ -63,52 +79,67 @@ const createProduct = (newProduct) => {
 
 const UpdateProduct = (newProduct, ProductId) => {
   return new Promise((resolve, reject) => {
-    const {
-      name,
-      description,
-      hot,
-      price,
-      sale,
-      quantity,
-      category_id,
-      configuration,
-      images,
-    } = newProduct;
-    const timeUpdate = moment().format("YYYY-MM-DD HH:mm:ss");
-    try {
-      const sql =
-        "UPDATE products SET name = ? ,images = ? , description = ? , hot = ? , price = ? , sale= ? , quantity = ? ,category_id= ?, configuration= ?  , updated_at = ? WHERE id = ? ";
+    const { product, configuration, images } = newProduct;
 
-      const imagesString = images.join(",");
+    try {
+      const sqlProduct =
+        "UPDATE products SET  name = ? , images = ? , hot = ? , price =?, sale =? , quantity = ? , category_id = ? WHERE id = ?";
+      const imagesString = images?.join(",");
       connection.query(
-        sql,
+        sqlProduct,
         [
-          name,
+          product?.name,
           imagesString,
-          description,
-          hot,
-          price,
-          sale,
-          quantity,
-          category_id,
-          configuration,
-          timeUpdate,
+          product?.hot,
+          product?.price,
+          product?.sale,
+          product?.quantity,
+          product?.category_id,
           ProductId,
         ],
-        (err, data) => {
+        (err, results) => {
           if (err) {
             console.log(err);
             resolve({
               status: "Err",
-              message: "Update Product fail",
+              message: "Cập nhật sản phẩm thất bại",
               err,
             });
+          } else {
+            const sqlConfiguration = `UPDATE configuration SET after_camera = ? ,battery = ? ,before_camera = ? ,chipset = ? ,operating_system = ? ,ram = ? ,screen_resolution = ? ,screen_size = ? ,screen_technology = ? ,storage = ?  WHERE product_id = ?`;
+            connection.query(
+              sqlConfiguration,
+              [
+                configuration?.after_camera,
+                configuration?.battery,
+                configuration?.before_camera,
+                configuration?.chipset,
+                configuration?.operating_system,
+                configuration?.ram,
+                configuration?.screen_resolution,
+                configuration?.screen_size,
+                configuration?.screen_technology,
+                configuration?.storage,
+                ProductId,
+              ],
+              (err, data) => {
+                if (err) {
+                  console.log(err);
+                  resolve({
+                    status: "Err",
+                    message: "Cập nhật cấu hình thất bại",
+                    err,
+                  });
+                }
+
+                resolve({
+                  status: "OK",
+                  message: "Cập nhật sản phẩm thành công",
+                  data: data,
+                });
+              }
+            );
           }
-          resolve({
-            status: "OK",
-            message: "Update Product success",
-            data: data,
-          });
         }
       );
     } catch (err) {
@@ -121,21 +152,30 @@ const UpdateProduct = (newProduct, ProductId) => {
 const DeleteProduct = (ProductId) => {
   return new Promise((resolve, reject) => {
     try {
-      const sql = "DELETE FROM products WHERE id = ? ";
+      const sql = "DELETE FROM configuration WHERE product_id = ?";
       connection.query(sql, [ProductId], (err, data) => {
         if (err) {
           console.log(err);
           resolve({
             status: "Err",
-            message: "Delete Product Fail",
+            message: "Delete Product configuration Fail",
             data: data,
           });
+        } else {
+          connection.query(
+            "DELETE FROM products WHERE id = ? ",
+            [ProductId],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+                resolve({
+                  status: "Err",
+                  message: "Delete Product Fail",
+                });
+              }
+            }
+          );
         }
-        resolve({
-          status: "OK",
-          message: "Delete Product success",
-          data: data,
-        });
       });
     } catch (err) {
       console.log(err);
@@ -212,7 +252,7 @@ const GetByIdProduct = (ProductId) => {
   return new Promise((resolve, reject) => {
     try {
       const sql = "SELECT * FROM products WHERE id = ? ";
-      connection.query(sql, [ProductId], (err, data) => {
+      connection.query(sql, [ProductId], (err, product) => {
         if (err) {
           console.log(err);
           resolve({
@@ -220,12 +260,30 @@ const GetByIdProduct = (ProductId) => {
             message: "Get detail product fail",
             err,
           });
+        } else {
+          const sqlConfiguration = `SELECT * FROM configuration WHERE product_id = ?`;
+
+          connection.query(sqlConfiguration, [ProductId], (err, config) => {
+            if (err) {
+              console.log(err);
+              resolve({
+                status: 200,
+                message: "Get configuration product fail",
+                err,
+              });
+            } else {
+              const data = {
+                ...product,
+                config,
+              };
+              resolve({
+                status: 200,
+                message: "Get detail product success",
+                data,
+              });
+            }
+          });
         }
-        resolve({
-          status: 200,
-          message: "Get detail product success",
-          data,
-        });
       });
     } catch (err) {
       console.log(err);

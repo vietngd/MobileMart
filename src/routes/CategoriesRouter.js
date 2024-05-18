@@ -10,12 +10,13 @@ const router = express.Router();
 
 router.post(
   "/create",
+  authMiddleware,
   checkExistence("categories", "name"),
   CategoryController.createCategory
 );
 
 router.put("/update/:id", CategoryController.UpdateCategory);
-router.delete("/dele:te/:id", CategoryController.DeleteCategory);
+router.delete("/delete/:id", CategoryController.DeleteCategory);
 router.get("/getAll/", CategoryController.GetAllCategory);
 router.get("/getById/:id", CategoryController.GetCategoryById);
 

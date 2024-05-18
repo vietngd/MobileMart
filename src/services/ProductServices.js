@@ -152,31 +152,24 @@ const UpdateProduct = (newProduct, ProductId) => {
 const DeleteProduct = (ProductId) => {
   return new Promise((resolve, reject) => {
     try {
-      const sql = "DELETE FROM configuration WHERE product_id = ?";
-      connection.query(sql, [ProductId], (err, data) => {
-        if (err) {
-          console.log(err);
-          resolve({
-            status: "Err",
-            message: "Delete Product configuration Fail",
-            data: data,
-          });
-        } else {
-          connection.query(
-            "DELETE FROM products WHERE id = ? ",
-            [ProductId],
-            (err, result) => {
-              if (err) {
-                console.log(err);
-                resolve({
-                  status: "Err",
-                  message: "Delete Product Fail",
-                });
-              }
-            }
-          );
+      connection.query(
+        "DELETE FROM products WHERE id = ? ",
+        [ProductId],
+        (err, result) => {
+          if (err) {
+            console.log(err);
+            resolve({
+              status: "Err",
+              message: "Delete Product Fail",
+            });
+          } else {
+            resolve({
+              status: "OK",
+              message: "Delete Product success",
+            });
+          }
         }
-      });
+      );
     } catch (err) {
       console.log(err);
       reject(err);

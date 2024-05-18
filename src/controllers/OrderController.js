@@ -150,6 +150,35 @@ const deleteOrder = async (req, res) => {
     });
   }
 };
+const statisticalOrder = async (req, res) => {
+  try {
+    const response = await OrderServices.statisticalOrder();
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+const cancelOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(200).json({
+        status: "Err",
+        message: "Thiếu order_id",
+      });
+    }
+    const response = await OrderServices.cancelOrder(id);
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
 
 module.exports = {
   createOrder,
@@ -158,4 +187,6 @@ module.exports = {
   getDetailOrder,
   updateTransport,
   deleteOrder,
+  statisticalOrder,
+  cancelOrder,
 };

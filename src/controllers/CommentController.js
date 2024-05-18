@@ -102,8 +102,34 @@ const ReplyComment = async (req, res) => {
     });
   }
 };
+const DeleteComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { product_id } = req.query;
+    if (!id) {
+      return res.status(200).json({
+        status: "Err",
+        message: "ID comment thiếu",
+      });
+    }
+    if (!product_id) {
+      return res.status(200).json({
+        status: "Err",
+        message: "Thiếu product_id",
+      });
+    }
+    const response = await CommentServices.DeleteComment(id, product_id);
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
 module.exports = {
   CreateComment,
   GetAllComment,
   ReplyComment,
+  DeleteComment,
 };

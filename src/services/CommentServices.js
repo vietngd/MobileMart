@@ -22,7 +22,6 @@ const createComment = (newComment) => {
           }
 
           // Cập nhật total comment của product
-
           const sqlUpdateTotalComment = `UPDATE products SET total_comments = total_comments +1 WHERE id = ?`;
           connection.query(
             sqlUpdateTotalComment,
@@ -169,8 +168,51 @@ const ReplyComment = (replyComment) => {
     }
   });
 };
+const DeleteComment = (id, product_id) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const sql = "DELETE FROM comments WHERE id = ?";
+      connection.query(sql, [id], (err, data) => {
+        if (err) {
+          console.log(err);
+          resolve({
+            status: "Err",
+            message: "Delete commnet thất bại",
+            err,
+          });
+        } else {
+          const sqlUpdateTotalComment = `UPDATE products SET total_comments = total_comments - 1 WHERE id = ?`;
+          connection.query(
+            sqlUpdateTotalComment,
+            [product_id],
+            (err, result) => {
+              if (err) {
+                console.log(
+                  "Lỗi khi cập nhật số lượng comment khi xóa comment"
+                );
+                resolve({
+                  status: "Err",
+                  message: "Update total commnet fail",
+                });
+              } else {
+                resolve({
+                  status: "OK",
+                  message: "Delete commnet thành công",
+                });
+              }
+            }
+          );
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
 module.exports = {
   createComment,
   getAllComment,
   ReplyComment,
+  DeleteComment,
 };

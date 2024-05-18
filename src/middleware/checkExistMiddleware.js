@@ -13,14 +13,12 @@ const checkExist = (table, field) => {
             message: "Internal server error",
           });
         }
-
         if (data.length > 0) {
           return res.status(200).json({
-            status: "Err",
+            status: "exists",
             message: `${field} already exists`,
           });
         }
-
         next();
       }
     );

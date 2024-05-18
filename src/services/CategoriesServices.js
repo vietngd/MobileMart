@@ -1,24 +1,26 @@
-const bcrypt = require("bcrypt");
 const connection = require("../config/ConnectDB.js");
 const RandomID = require("../config/randomID.js");
 const moment = require("moment");
 
 const createCategory = (newCategory) => {
   return new Promise((resolve, reject) => {
-    const { name, description } = newCategory;
+    const { name } = newCategory;
     const id = RandomID(25);
     try {
-      const sql =
-        "INSERT INTO categories (id,name,description) VALUES (?, ? , ?)";
-      connection.query(sql, [id, name, description], (err, data) => {
+      const sql = "INSERT INTO categories (id,name) VALUES (?, ?)";
+      connection.query(sql, [id, name], (err, data) => {
         if (err) {
-          console.log(err);
+          console.log("Lỗi khi tạo danh mục", err);
+          resolve({
+            status: "Err",
+            message: "Thêm danh mục fail",
+          });
+        } else {
+          resolve({
+            status: "OK",
+            message: "Thêm danh mục thành công",
+          });
         }
-        resolve({
-          status: 200,
-          message: "Thêm danh mục thành công",
-          data: data,
-        });
       });
     } catch (err) {
       console.log(err);
@@ -66,13 +68,17 @@ const DeleteCategory = (categoryId) => {
       const sql = "DELETE FROM categories WHERE id = ? ";
       connection.query(sql, [categoryId], (err, data) => {
         if (err) {
-          console.log(err);
+          console.log("Lỗi khi delete category", err);
+          resolve({
+            status: "Err",
+            message: "Delete category fail",
+          });
+        } else {
+          resolve({
+            status: "OK",
+            message: "Delete category success",
+          });
         }
-        resolve({
-          status: 200,
-          message: "Delete category success",
-          data: data,
-        });
       });
     } catch (err) {
       console.log(err);

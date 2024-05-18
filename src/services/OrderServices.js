@@ -1,3 +1,4 @@
+const { data } = require("jquery");
 const connection = require("../config/ConnectDB.js");
 
 const createOrder = (newOrder) => {
@@ -54,7 +55,7 @@ const createOrder = (newOrder) => {
                     });
                   } else {
                     connection.query(
-                      `UPDATE products SET total_pay = total_pay + 1 , quantity = quantity - 1 WHERE id = "${product?.product_id}"`
+                      `UPDATE products SET total_pay = total_pay + ${product?.quantity} , quantity = quantity - ${product?.quantity} WHERE id = "${product?.product_id}"`
                     );
                     resolve({
                       status: "OK",
@@ -86,6 +87,7 @@ const getOrderByUser = (user) => {
                 orders.id AS order_id, 
                 orders.order_status_payment, 
                 orders.order_status_transport, 
+                orders.order_status_cancel, 
                 orders.total_money,
                 CONCAT(
                     '[',
@@ -145,7 +147,7 @@ const getOrderByUser = (user) => {
 const getAllOrder = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      const sql = `SELECT orders.id, users.name , orders.address, users.phone , orders.note, orders.total_money , orders.order_status_payment,orders.order_status_transport , orders.created_at FROM
+      const sql = `SELECT orders.id, orders.name , orders.address, users.phone , orders.note, orders.total_money , orders.order_status_payment,orders.order_status_transport,orders.order_status_cancel , orders.created_at FROM
       orders JOIN users ON orders.user_id = users.id`;
 
       connection.query(sql, [], (err, result) => {
@@ -259,31 +261,20 @@ const updateTransport = (order_id) => {
 const deleteOrder = (order_id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const sql = `DELETE FROM order_detail WHERE order_id = ?`;
-
-      connection.query(sql, [order_id], (err, result) => {
+      const sqlDeletOrder = `DELETE FROM orders WHERE id = ?`;
+      connection.query(sqlDeletOrder, [order_id], (err, data) => {
         if (err) {
-          console.log("Err khi delete order_detail =>>", err);
+          console.log("Err khi delete order =>>", err);
           resolve({
             status: "Err",
-            message: "Delete order_detail fail",
+            message: "Delete order fail",
           });
-        }
-        const sqlDeletOrder = `DELETE FROM orders WHERE id = ?`;
-        connection.query(sqlDeletOrder, [order_id], (err, data) => {
-          if (err) {
-            console.log("Err khi delete order =>>", err);
-            resolve({
-              status: "Err",
-              message: "Delete order fail",
-            });
-          }
-
+        } else {
           resolve({
             status: "OK",
             message: "Delete order success",
           });
-        });
+        }
       });
     } catch (err) {
       console.log(err);
@@ -291,7 +282,68 @@ const deleteOrder = (order_id) => {
     }
   });
 };
+const statisticalOrder = (order_id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const sql = `SELECT 
+          c.id AS category_id,
+          c.name AS category_name,
+          SUM(od.quantity) AS total_quantity_sold
+        FROM 
+            categories c
+        JOIN 
+            products p ON c.id = p.category_id
+        JOIN 
+            order_detail od ON p.id = od.product_id
+        GROUP BY 
+            c.id, c.name;`;
 
+      connection.query(sql, [], (err, result) => {
+        if (err) {
+          console.log("Err khi Thống kê order =>>", err);
+          resolve({
+            status: "Err",
+            message: "Thống kê order fail",
+          });
+        } else {
+          resolve({
+            status: "OK",
+            message: "Thống kê order success",
+            data: result,
+          });
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
+const cancelOrder = (order_id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const sql = `UPDATE orders SET order_status_cancel = true WHERE id = ?`;
+
+      connection.query(sql, [order_id], (err, result) => {
+        if (err) {
+          console.log("Err khi cancel order =>>", err);
+          resolve({
+            status: "Err",
+            message: "Cancel order fail",
+          });
+        } else {
+          resolve({
+            status: "OK",
+            message: "Cancel order success",
+          });
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
 module.exports = {
   createOrder,
   getOrderByUser,
@@ -299,4 +351,6 @@ module.exports = {
   getDetailOrder,
   updateTransport,
   deleteOrder,
+  statisticalOrder,
+  cancelOrder,
 };

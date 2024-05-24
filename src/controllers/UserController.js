@@ -150,6 +150,73 @@ const logoutUser = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(200).json({
+        status: "Err",
+        message: "The Email is required",
+      });
+    }
+    const response = await UserServices.forgotPassword(email);
+    return res.status(200).json(response);
+  } catch (err) {
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+
+const verifyForgotPassword = async (req, res) => {
+  try {
+    const { code } = req.body;
+    const token = req.headers.token.split(" ")[1];
+    if (!code) {
+      return res.status(200).json({
+        status: "Err",
+        message: "The Code is required",
+      });
+    }
+    if (!token) {
+      return res.status(200).json({
+        status: "Err",
+        message: "The token is required",
+      });
+    }
+    const response = await UserServices.verifyForgotPassword(code, token);
+    return res.status(200).json(response);
+  } catch (err) {
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+const updatePassword = async (req, res) => {
+  try {
+    const { newPassword, email } = req.body;
+    if (!newPassword) {
+      return res.status(200).json({
+        status: "Err",
+        message: "The newPassword is required",
+      });
+    }
+    if (!email) {
+      return res.status(200).json({
+        status: "Err",
+        message: "The email is required",
+      });
+    }
+
+    const response = await UserServices.updatePassword(newPassword, email);
+    return res.status(200).json(response);
+  } catch (err) {
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
+
 module.exports = {
   createUser,
   loginUser,
@@ -159,4 +226,7 @@ module.exports = {
   getDetailUser,
   refreshToken,
   logoutUser,
+  forgotPassword,
+  verifyForgotPassword,
+  updatePassword,
 };

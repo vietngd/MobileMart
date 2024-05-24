@@ -27,13 +27,10 @@ const UpdateCategory = async (req, res) => {
     if (!name) {
       return res.status(200).json({
         status: "Err",
-        message: "The input is required",
+        message: "Vui lòng nhập tên category",
       });
     }
-    const response = await CategoryServices.UpdateCategory(
-      req.body,
-      categoryId
-    );
+    const response = await CategoryServices.UpdateCategory(name, categoryId);
     return res.status(200).json(response);
   } catch (err) {
     console.log(err);

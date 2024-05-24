@@ -6,6 +6,11 @@ const {
   genneralRefreshToken,
 } = require("./JwtServices.js");
 const RandomID = require("../config/randomID.js");
+const EmailServices = require("../services/EmailServices.js");
+const ultils = require("../ultils.js");
+const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv");
+dotenv.config();
 
 //Tạo tài khoản
 const createUser = (newUser) => {
@@ -15,17 +20,20 @@ const createUser = (newUser) => {
     try {
       const hashPassword = bcrypt.hashSync(password, 10);
       const sql = "INSERT INTO users (id,email, password ) VALUES (?, ? , ?)";
-      const createUser = connection.query(
-        sql,
-        [id, email, hashPassword],
-        (err, data) => {
+      connection.query(sql, [id, email, hashPassword], (err, data) => {
+        if (err) {
+          console.log(err);
+          resolve({
+            status: "Err",
+            message: "Tạo tài khoản thất bại",
+          });
+        } else {
           resolve({
             status: "OK",
             message: "Tạo tài khoản thành công",
-            data: createUser.values,
           });
         }
-      );
+      });
     } catch (err) {
       console.log(err);
       reject(err);
@@ -205,6 +213,94 @@ const updateUser = (infoUser, userId) => {
   });
 };
 
+//Gửi yêu cầu reset password
+const forgotPassword = (email) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const sql = "SELECT id FROM users WHERE email = ?";
+      connection.query(sql, [email], (err, data) => {
+        if (err) {
+          resolve({
+            status: "Err",
+            message: "Err khi forgot password",
+          });
+        } else {
+          if (data.length > 0) {
+            const code = ultils.RandomCode();
+            const codeJwt = ultils.genneralCodeJWT(code);
+            EmailServices.sendEmail(email, code);
+            resolve({
+              status: "OK",
+              message: "Send email success",
+              code: codeJwt,
+            });
+          } else {
+            resolve({
+              status: "Err",
+              message: "Email không tồn tại",
+            });
+          }
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
+const verifyForgotPassword = (code, token) => {
+  return new Promise((resolve, reject) => {
+    try {
+      jwt.verify(token, process.env.VERIFY_KEY, function (err, codeJWT) {
+        if (err) {
+          console.log("Token err==>>>", err);
+          resolve({
+            status: "Err",
+            message: "The code is incorect",
+          });
+        }
+        if (codeJWT?.code === code) {
+          resolve({
+            status: "OK",
+            message: "Xác minh thành công",
+          });
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
+const updatePassword = (newPassword, email) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const hashPassword = bcrypt.hashSync(newPassword, 10);
+      connection.query(
+        "UPDATE users SET password = ? WHERE email = ?",
+        [hashPassword, email],
+        (err) => {
+          if (err) {
+            console.log(err);
+            resolve({
+              status: "Err",
+              message: "Update password",
+            });
+          } else {
+            resolve({
+              status: "OK",
+              message: "Update password success",
+            });
+          }
+        }
+      );
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
+
 module.exports = {
   createUser,
   loginUser,
@@ -212,4 +308,7 @@ module.exports = {
   getAllUser,
   getDetailUser,
   updateUser,
+  forgotPassword,
+  verifyForgotPassword,
+  updatePassword,
 };

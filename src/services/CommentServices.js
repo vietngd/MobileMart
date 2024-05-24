@@ -1,4 +1,5 @@
 const connection = require("../config/ConnectDB.js");
+const ultils = require("../ultils.js");
 
 const createComment = (newComment) => {
   return new Promise((resolve, reject) => {
@@ -7,11 +8,10 @@ const createComment = (newComment) => {
     try {
       const sql =
         "INSERT INTO comments (product_id,content,rating,name,phone,email) VALUES (? , ? , ? , ? , ? , ?)";
-
       connection.query(
         sql,
         [product_id, content, rating, name, phone, email],
-        (err, data) => {
+        (err) => {
           if (err) {
             console.log(err);
             resolve({
@@ -23,25 +23,63 @@ const createComment = (newComment) => {
 
           // Cập nhật total comment của product
           const sqlUpdateTotalComment = `UPDATE products SET total_comments = total_comments +1 WHERE id = ?`;
-          connection.query(
-            sqlUpdateTotalComment,
-            [product_id],
-            (err, dataProduct) => {
-              if (err) {
-                console.log(err);
-                resolve({
-                  status: "Err",
-                  message: "Thêm commnet thất bại",
-                  err,
-                });
-              }
-
+          connection.query(sqlUpdateTotalComment, [product_id], (err) => {
+            if (err) {
+              console.log(err);
               resolve({
-                status: "OK",
-                message: "Thêm commnet thành công",
+                status: "Err",
+                message: "Thêm commnet thất bại",
+                err,
+              });
+            } else {
+              // Truy vấn tổng số lượng đánh giá cho mỗi mức rating
+              let ratingSql =
+                "SELECT rating, COUNT(*) as total_ratings FROM comments WHERE product_id = ? AND rating IN (1, 2, 3, 4, 5) GROUP BY rating";
+
+              connection.query(ratingSql, [product_id], (err, ratingData) => {
+                if (err) {
+                  console.log("Err khi get rating count");
+                  resolve({
+                    status: "Err",
+                    message: "Get rating count failed",
+                  });
+                }
+
+                // Chuyển đổi kết quả ratingData thành đối tượng dễ sử dụng
+                const ratingCounts = {
+                  1: 0,
+                  2: 0,
+                  3: 0,
+                  4: 0,
+                  5: 0,
+                };
+
+                ratingData.forEach((row) => {
+                  ratingCounts[row.rating] = row.total_ratings;
+                });
+
+                const rating = ultils.calculateAverageRating(ratingCounts);
+                connection.query(
+                  "UPDATE products SET rating = ? WHERE id = ?",
+                  [rating, product_id],
+                  (err) => {
+                    if (err) {
+                      console.log("Lỗi khi update rating cho product");
+                      resolve({
+                        status: "Err",
+                        message: "Thêm commnet fail",
+                      });
+                    } else {
+                      resolve({
+                        status: "OK",
+                        message: "Thêm commnet thành công",
+                      });
+                    }
+                  }
+                );
               });
             }
-          );
+          });
         }
       );
     } catch (err) {
@@ -181,27 +219,51 @@ const DeleteComment = (id, product_id) => {
             err,
           });
         } else {
-          const sqlUpdateTotalComment = `UPDATE products SET total_comments = total_comments - 1 WHERE id = ?`;
-          connection.query(
-            sqlUpdateTotalComment,
-            [product_id],
-            (err, result) => {
-              if (err) {
-                console.log(
-                  "Lỗi khi cập nhật số lượng comment khi xóa comment"
-                );
-                resolve({
-                  status: "Err",
-                  message: "Update total commnet fail",
-                });
-              } else {
-                resolve({
-                  status: "OK",
-                  message: "Delete commnet thành công",
-                });
-              }
+          let ratingSql =
+            "SELECT rating, COUNT(*) as total_ratings FROM comments WHERE product_id = ? AND rating IN (1, 2, 3, 4, 5) GROUP BY rating";
+
+          connection.query(ratingSql, [product_id], (err, ratingData) => {
+            if (err) {
+              console.log("Err khi get rating count");
+              resolve({
+                status: "Err",
+                message: "Get rating count failed",
+              });
             }
-          );
+
+            // Chuyển đổi kết quả ratingData thành đối tượng dễ sử dụng
+            const ratingCounts = {
+              1: 0,
+              2: 0,
+              3: 0,
+              4: 0,
+              5: 0,
+            };
+
+            ratingData.forEach((row) => {
+              ratingCounts[row.rating] = row.total_ratings;
+            });
+
+            const rating = ultils.calculateAverageRating(ratingCounts);
+            connection.query(
+              "UPDATE products SET rating = ?, total_comments = total_comments - 1 WHERE id = ?",
+              [rating, product_id],
+              (err) => {
+                if (err) {
+                  console.log("Lỗi khi update rating cho product");
+                  resolve({
+                    status: "Err",
+                    message: "Xóa commnet fail",
+                  });
+                } else {
+                  resolve({
+                    status: "OK",
+                    message: "Xóa commnet thành công",
+                  });
+                }
+              }
+            );
+          });
         }
       });
     } catch (err) {

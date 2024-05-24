@@ -1,6 +1,4 @@
-const { data } = require("jquery");
 const connection = require("../config/ConnectDB.js");
-
 const createOrder = (newOrder) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -74,7 +72,6 @@ const createOrder = (newOrder) => {
     }
   });
 };
-
 const getOrderByUser = (user) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -89,6 +86,7 @@ const getOrderByUser = (user) => {
                 orders.order_status_transport, 
                 orders.order_status_cancel, 
                 orders.total_money,
+                orders.created_at,
                 CONCAT(
                     '[',
                     GROUP_CONCAT(
@@ -112,7 +110,9 @@ const getOrderByUser = (user) => {
             WHERE 
                 orders.user_id = ?
             GROUP BY 
-                orders.id`;
+                orders.id
+            ORDER BY orders.created_at DESC
+                `;
 
       connection.query(sql, [user_id], function (error, results) {
         if (error) {
@@ -143,27 +143,63 @@ const getOrderByUser = (user) => {
     }
   });
 };
+const getAllOrder = (Page, PageSize) => {
+  if (PageSize) {
+    PageSize = parseInt(PageSize);
+  }
+  const startIndex = (Page - 1) * PageSize; // Tính startIndex cho trang hiện tại
 
-const getAllOrder = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      const sql = `SELECT orders.id, orders.name , orders.address, users.phone , orders.note, orders.total_money , orders.order_status_payment,orders.order_status_transport,orders.order_status_cancel , orders.created_at FROM
-      orders JOIN users ON orders.user_id = users.id`;
+      let sql = `SELECT orders.id, orders.name, orders.address, users.phone, orders.note, orders.total_money, orders.order_status_payment, orders.order_status_transport, orders.order_status_cancel, orders.created_at 
+                 FROM orders 
+                 JOIN users ON orders.user_id = users.id 
+                 ORDER BY orders.created_at DESC`;
 
-      connection.query(sql, [], (err, result) => {
+      let params = [];
+      if (PageSize && PageSize > 0) {
+        sql += ` LIMIT ?, ?`;
+        params = [startIndex, PageSize];
+      }
+
+      connection.query(sql, params, (err, orders) => {
         if (err) {
           console.log("Err khi getAllOrder =>>", err);
           resolve({
             status: "Err",
-            message: "Get all order fail",
+            message: "Get all orders fail",
           });
-        }
+        } else {
+          // Truy vấn tổng số lượng orders
+          connection.query(
+            "SELECT COUNT(*) AS totalCount FROM orders",
+            [],
+            (err, data) => {
+              if (err) {
+                console.log("Err khi tính tổng số lượng orders =>>", err);
+                resolve({
+                  status: "Err",
+                  message: "Total orders fail",
+                });
+              } else {
+                const totalCount = data[0].totalCount;
 
-        resolve({
-          status: "OK",
-          message: "Get all order success",
-          data: result,
-        });
+                const response = {
+                  status: "OK",
+                  message: "Get all orders success",
+                  data: orders,
+                  pagination: {
+                    currentPage: Page,
+                    pageSize: PageSize || totalCount, // Nếu không có PageSize, set PageSize bằng tổng số lượng orders
+                    totalPages: PageSize ? Math.ceil(totalCount / PageSize) : 1,
+                    totalCount: totalCount,
+                  },
+                };
+                resolve(response);
+              }
+            }
+          );
+        }
       });
     } catch (err) {
       console.log(err);
@@ -171,7 +207,6 @@ const getAllOrder = () => {
     }
   });
 };
-
 const getDetailOrder = (order_id) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -231,7 +266,6 @@ const getDetailOrder = (order_id) => {
     }
   });
 };
-
 const updateTransport = (order_id) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -261,20 +295,95 @@ const updateTransport = (order_id) => {
 const deleteOrder = (order_id) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const sqlDeletOrder = `DELETE FROM orders WHERE id = ?`;
-      connection.query(sqlDeletOrder, [order_id], (err, data) => {
+      // Bắt đầu transaction
+      connection.beginTransaction((err) => {
         if (err) {
-          console.log("Err khi delete order =>>", err);
-          resolve({
+          console.log("Err khi bắt đầu transaction =>>", err);
+          return resolve({
             status: "Err",
-            message: "Delete order fail",
-          });
-        } else {
-          resolve({
-            status: "OK",
-            message: "Delete order success",
+            message: "Transaction start fail",
           });
         }
+
+        // Lấy chi tiết đơn hàng
+        connection.query(
+          "SELECT product_id, quantity FROM order_detail WHERE order_id = ?",
+          [order_id],
+          (err, order_detail) => {
+            if (err) {
+              console.log("Lỗi khi lấy chi tiết đơn hàng =>>", err);
+              return connection.rollback(() => {
+                resolve({
+                  status: "Err",
+                  message: "Get order_detail fail",
+                });
+              });
+            }
+
+            // Cập nhật số lượng sản phẩm
+            const updateProductQuantity = order_detail.map((item) => {
+              return new Promise((resolve, reject) => {
+                connection.query(
+                  "UPDATE products SET quantity = quantity + ? , total_pay = total_pay - ? WHERE id = ?",
+                  [item.quantity, item.quantity, item.product_id],
+                  (err) => {
+                    if (err) {
+                      return reject(err);
+                    }
+                    resolve();
+                  }
+                );
+              });
+            });
+
+            Promise.all(updateProductQuantity)
+              .then(() => {
+                // Xóa đơn hàng sau khi cập nhật số lượng sản phẩm
+                connection.query(
+                  "DELETE FROM orders WHERE id = ?",
+                  [order_id],
+                  (err) => {
+                    if (err) {
+                      console.log("Lỗi khi xóa đơn hàng =>>", err);
+                      return connection.rollback(() => {
+                        resolve({
+                          status: "Err",
+                          message: "Delete order fail",
+                        });
+                      });
+                    }
+
+                    // Commit transaction nếu không có lỗi
+                    connection.commit((err) => {
+                      if (err) {
+                        console.log("Lỗi khi commit transaction =>>", err);
+                        return connection.rollback(() => {
+                          resolve({
+                            status: "Err",
+                            message: "Commit transaction fail",
+                          });
+                        });
+                      }
+
+                      resolve({
+                        status: "OK",
+                        message: "Delete order success",
+                      });
+                    });
+                  }
+                );
+              })
+              .catch((err) => {
+                console.log("Lỗi khi cập nhật số lượng sản phẩm =>>", err);
+                connection.rollback(() => {
+                  resolve({
+                    status: "Err",
+                    message: "Update product quantity fail",
+                  });
+                });
+              });
+          }
+        );
       });
     } catch (err) {
       console.log(err);

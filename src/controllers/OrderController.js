@@ -84,7 +84,9 @@ const getOrderByUser = async (req, res) => {
 
 const getAllOrder = async (req, res) => {
   try {
-    const response = await OrderServices.getAllOrder();
+    const { page, pageSize } = req.query;
+    const Page = parseInt(page) || 1;
+    const response = await OrderServices.getAllOrder(Page, pageSize);
     return res.status(200).json(response);
   } catch (err) {
     console.log(err);

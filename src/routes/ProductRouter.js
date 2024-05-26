@@ -1,10 +1,6 @@
 const ProductController = require("../controllers/ProductController.js");
 const express = require("express");
-const {
-  authMiddleware,
-  authUserMiddleware,
-} = require("../middleware/authMiddleware.js");
-const checkExistence = require("../middleware/checkExistMiddleware.js");
+const { authMiddleware } = require("../middleware/authMiddleware.js");
 const UploadImageMiddleware = require("../middleware/UploadImage.js");
 
 const router = express.Router();

@@ -143,7 +143,7 @@ const getOrderByUser = (user) => {
     }
   });
 };
-const getAllOrder = (Page, PageSize) => {
+const getAllOrder = (Page, PageSize, order_id) => {
   if (PageSize) {
     PageSize = parseInt(PageSize);
   }
@@ -154,8 +154,12 @@ const getAllOrder = (Page, PageSize) => {
       let sql = `SELECT orders.id, orders.name, orders.address, users.phone, orders.note, orders.total_money, orders.order_status_payment, orders.order_status_transport, orders.order_status_cancel, orders.created_at 
                  FROM orders 
                  JOIN users ON orders.user_id = users.id 
-                 ORDER BY orders.created_at DESC`;
+                 `;
 
+      if (order_id) {
+        sql += `WHERE orders.id = ${order_id} `;
+      }
+      sql += `ORDER BY orders.created_at DESC`;
       let params = [];
       if (PageSize && PageSize > 0) {
         sql += ` LIMIT ?, ?`;

@@ -9,7 +9,7 @@ const authMiddleware = (req, res, next) => {
     if (err) {
       return res.status(404).json({
         status: "Err",
-        message: "The authentication",
+        message: "Token hết hạn",
       });
     }
 

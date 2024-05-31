@@ -72,10 +72,10 @@ const createOrder = (newOrder) => {
     }
   });
 };
-const getOrderByUser = (user) => {
+const getOrderByUser = (query) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const { user_id } = user;
+      const { user_id, is_received } = query;
 
       const sql = `
             SELECT 
@@ -85,6 +85,7 @@ const getOrderByUser = (user) => {
                 orders.order_status_payment, 
                 orders.order_status_transport, 
                 orders.order_status_cancel, 
+                orders.is_received,
                 orders.total_money,
                 orders.created_at,
                 CONCAT(
@@ -108,7 +109,7 @@ const getOrderByUser = (user) => {
             JOIN 
                 products ON order_detail.product_id = products.id
             WHERE 
-                orders.user_id = ?
+                orders.user_id = ? AND orders.is_received = ${is_received}
             GROUP BY 
                 orders.id
             ORDER BY orders.created_at DESC
@@ -161,7 +162,8 @@ const getAllOrder = (Page, PageSize, order_id) => {
       }
       sql += `ORDER BY orders.created_at DESC`;
       let params = [];
-      if (PageSize && PageSize > 0) {
+      //Khi khôn tìm kiếm thì mới phân trang
+      if (!order_id && PageSize && PageSize > 0) {
         sql += ` LIMIT ?, ?`;
         params = [startIndex, PageSize];
       }
@@ -457,6 +459,31 @@ const cancelOrder = (order_id) => {
     }
   });
 };
+const updateIsReceived = (order_id) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const sql = `UPDATE orders SET is_received = true WHERE id = ?`;
+
+      connection.query(sql, [order_id], (err) => {
+        if (err) {
+          console.log("Err khi update is_received order =>>", err);
+          resolve({
+            status: "Err",
+            message: "Update is_received order fail",
+          });
+        } else {
+          resolve({
+            status: "OK",
+            message: "Update is_received order success",
+          });
+        }
+      });
+    } catch (err) {
+      console.log(err);
+      reject(err);
+    }
+  });
+};
 module.exports = {
   createOrder,
   getOrderByUser,
@@ -466,4 +493,5 @@ module.exports = {
   deleteOrder,
   statisticalOrder,
   cancelOrder,
+  updateIsReceived,
 };

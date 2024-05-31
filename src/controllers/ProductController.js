@@ -108,12 +108,11 @@ const DeleteProduct = async (req, res) => {
 const GetAllProduct = async (req, res) => {
   try {
     const { page, pageSize, sortField, sortOrder, productName } = req.query;
-    const PageSize = parseInt(pageSize) || 5;
     const Page = parseInt(page) || 1;
 
     const response = await ProductServices.GetAllProduct(
       Page,
-      PageSize,
+      pageSize,
       sortField,
       sortOrder,
       productName

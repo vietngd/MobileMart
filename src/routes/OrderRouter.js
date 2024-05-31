@@ -25,5 +25,10 @@ router.put(
 router.delete("/delete/:id", authMiddleware, OrderController.deleteOrder);
 router.get("/statistical", authMiddleware, OrderController.statisticalOrder);
 router.put("/cancel/:id", authUserMiddleware, OrderController.cancelOrder);
+router.put(
+  "/update-is-received/:id",
+  authUserMiddleware,
+  OrderController.updateIsReceived
+);
 
 module.exports = router;

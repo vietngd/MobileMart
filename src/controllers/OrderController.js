@@ -65,11 +65,17 @@ const createOrder = async (req, res) => {
 
 const getOrderByUser = async (req, res) => {
   try {
-    const { user_id } = req.query;
+    const { user_id, is_received } = req.query;
     if (!user_id) {
       return res.status(200).json({
         status: "Err",
-        message: "Thiếu user_id",
+        message: "User_id is required",
+      });
+    }
+    if (!is_received) {
+      return res.status(200).json({
+        status: "Err",
+        message: "is_received is required",
       });
     }
     const response = await OrderServices.getOrderByUser(req.query);
@@ -181,7 +187,24 @@ const cancelOrder = async (req, res) => {
     });
   }
 };
-
+const updateIsReceived = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(200).json({
+        status: "Err",
+        message: "Thiếu order_id",
+      });
+    }
+    const response = await OrderServices.updateIsReceived(id);
+    return res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    return res.status(404).json({
+      message: err,
+    });
+  }
+};
 module.exports = {
   createOrder,
   getOrderByUser,
@@ -191,4 +214,5 @@ module.exports = {
   deleteOrder,
   statisticalOrder,
   cancelOrder,
+  updateIsReceived,
 };

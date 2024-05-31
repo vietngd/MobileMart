@@ -1,8 +1,5 @@
-const bcrypt = require("bcrypt");
 const connection = require("../config/ConnectDB.js");
 const RandomID = require("../config/randomID.js");
-const moment = require("moment");
-const { data } = require("jquery");
 
 const createProduct = (newProduct) => {
   return new Promise((resolve, reject) => {
@@ -56,14 +53,12 @@ const createProduct = (newProduct) => {
                   resolve({
                     status: "Err",
                     message: "Thêm cấu hình thất bại",
-                    err,
                   });
                 }
 
                 resolve({
                   status: "OK",
                   message: "Thêm sản phẩm thành công",
-                  data: data,
                 });
               }
             );
@@ -181,7 +176,10 @@ const GetAllProduct = (page, pageSize, sortField, sortOrder, productName) => {
   return new Promise((resolve, reject) => {
     try {
       // Tính chỉ số bắt đầu và số lượng sản phẩm để trả về trên trang hiện tại
-      const startIndex = (page - 1) * pageSize;
+      let startIndex = 0;
+      if (pageSize) {
+        startIndex = (page - 1) * parseInt(pageSize);
+      }
 
       let sql = "SELECT * FROM products WHERE 1=1";
 
@@ -194,7 +192,9 @@ const GetAllProduct = (page, pageSize, sortField, sortOrder, productName) => {
       }
 
       // Thêm phân trang
-      sql += ` LIMIT ${startIndex}, ${pageSize}`;
+      if (pageSize) {
+        sql += ` LIMIT ${startIndex}, ${parseInt(pageSize)}`;
+      }
 
       connection.query(sql, (err, data) => {
         if (err) {
@@ -215,7 +215,7 @@ const GetAllProduct = (page, pageSize, sortField, sortOrder, productName) => {
               reject(err);
             }
 
-            const totalCount = result[0].totalCount;
+            const totalCount = result[0]?.totalCount;
 
             // Tạo đối tượng kết quả để trả về
             const response = {
@@ -323,7 +323,7 @@ const GetByCategory = (categoryId, page, pageSize, sortField, sortOrder) => {
               reject(err);
             }
 
-            const totalCount = result[0].totalCount;
+            const totalCount = result[0]?.totalCount;
 
             // Tạo đối tượng kết quả để trả về
             const response = {

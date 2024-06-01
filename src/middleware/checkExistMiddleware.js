@@ -10,13 +10,13 @@ const checkExist = (table, field) => {
           console.log(err);
           return res.status(500).json({
             status: "Err",
-            message: "Internal server error",
+            message: "Lỗi server vui lòng thử lại sau!",
           });
         }
         if (data.length > 0) {
           return res.status(200).json({
             status: "exists",
-            message: `${field} already exists`,
+            message: `${field} đã tồn tại`,
           });
         }
         next();

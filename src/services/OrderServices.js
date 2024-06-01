@@ -158,7 +158,8 @@ const getAllOrder = (Page, PageSize, order_id) => {
                  `;
 
       if (order_id) {
-        sql += `WHERE orders.id = ${order_id} `;
+        const name = order_id;
+        sql += `WHERE orders.id = "${order_id}" OR orders.name LIKE "%${name}%"`;
       }
       sql += `ORDER BY orders.created_at DESC`;
       let params = [];

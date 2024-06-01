@@ -56,7 +56,7 @@ const loginUser = (loginUser) => {
         if (data.length === 0) {
           resolve({
             status: "Err",
-            message: "The email is not defined",
+            message: "Sai tài khoản hoặc mật khẩu",
           });
         } else {
           const comparePassword = bcrypt.compareSync(
@@ -172,8 +172,6 @@ const getDetailUser = (userId) => {
 const updateUser = (infoUser, userId) => {
   return new Promise((resolve, reject) => {
     try {
-      const timeUpdate = moment().format("YYYY-MM-DD HH:mm:ss");
-
       let sql = "UPDATE users SET ";
       let values = [];
 
@@ -185,10 +183,7 @@ const updateUser = (infoUser, userId) => {
         sql += `${key} = ?`;
         values.push(infoUser[key]);
       });
-      sql += ", ";
-      sql += " updated_at = ? WHERE id = ?";
-      values.push(timeUpdate);
-
+      sql += ` WHERE id = ?`;
       values.push(userId);
 
       connection.query(sql, values, (err, data) => {

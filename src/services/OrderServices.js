@@ -152,14 +152,15 @@ const getAllOrder = (Page, PageSize, order_id) => {
 
   return new Promise(async (resolve, reject) => {
     try {
-      let sql = `SELECT orders.id, orders.name, orders.address, users.phone, orders.note, orders.total_money, orders.order_status_payment, orders.order_status_transport, orders.order_status_cancel, orders.created_at 
+      let sql = `SELECT orders.id, orders.name, orders.address, orders.phone, orders.note, orders.total_money, orders.order_status_payment, orders.order_status_transport, orders.order_status_cancel, orders.created_at 
                  FROM orders 
                  JOIN users ON orders.user_id = users.id 
                  `;
 
       if (order_id) {
         const name = order_id;
-        sql += `WHERE orders.id = "${order_id}" OR orders.name LIKE "%${name}%"`;
+        const phone = order_id;
+        sql += `WHERE orders.id = "${order_id}" OR orders.name LIKE "%${name}%" OR orders.phone LIKE "%${phone}%" `;
       }
       sql += `ORDER BY orders.created_at DESC`;
       let params = [];

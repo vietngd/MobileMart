@@ -36,8 +36,8 @@ const RefreshToken = async (token) => {
           });
         }
         const refresh_token = await genneralAccessToken({
-          id: user.id,
-          isAdmin: user.isAdmin,
+          id: user?.id,
+          isAdmin: user?.isAdmin,
         });
 
         resolve({

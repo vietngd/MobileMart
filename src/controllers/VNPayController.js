@@ -10,7 +10,7 @@ const create_payment_url = async (req, res) => {
     req.headers["x-forwarded-for"] ||
     req.connection.remoteAddress ||
     req.socket.remoteAddress ||
-    req.connection.socket.remoteAddress; // Lấy địa chỉ IP của trình duyệt
+    req.connection.socket.remoteAddress; 
 
   let config = require("config");
   let tmnCode = config.get("vnp_TmnCode");
@@ -48,7 +48,7 @@ const create_payment_url = async (req, res) => {
 
   vnp_Params = sortObject(vnp_Params);
 
-  let querystring = require("qs"); // Chuyển đổi đối tượng JavaScript thành chuỗi truy vấn
+  let querystring = require("qs"); 
   let signData = querystring.stringify(vnp_Params, { encode: false });
   let crypto = require("crypto");
   let hmac = crypto.createHmac("sha512", secretKey);
